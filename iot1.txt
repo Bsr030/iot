@@ -1,0 +1,245 @@
+//led code
+
+import sys 
+import time 
+sys.path.append("/home/pi/1602-21-733/Adafruit_MCP230xx")
+from Adafruit_MCP230xx import Adafruit_MCP230XX 
+mcp=Adafruit_MCP230XX(busnum=1, address=0x20,num_gpios=16) 
+
+mcp.config(1,mcp.OUTPUT) 
+mcp.config(2,mcp.OUTPUT) 
+mcp.config(3,mcp.OUTPUT) 
+mcp.config(4,mcp.OUTPUT) 
+mcp.config(5,mcp.OUTPUT) 
+mcp.config(6,mcp.OUTPUT) 
+mcp.config(7,mcp.OUTPUT) 
+mcp.config(8,mcp.OUTPUT) 
+mcp.config(9,mcp.INPUT)
+mcp.config(10,mcp.INPUT) 
+
+while True: 
+	mcp.output(2,0)
+	if mcp.input(9) == 512 :
+		mcp.output(2,1)
+	if mcp.input(10) == 0 : 
+		mcp.output(2,0)
+	mcp.output(3,1) 
+	time.sleep(5)
+
+
+
+//Ultrasonic sensor
+import sys
+import time
+import RPi.GPIO as GPIO
+
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BOARD)
+GPIO_TRIGGER = 16
+GPIO_ECHO = 18
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+GPIO.setup(GPIO.ECHO, GPIO.IN)
+GPIO.output(GPIO_TRIGGER, False)
+time.sleep(1)
+
+while(True):
+	GPIO.output(GPIO_TRIGGER, True)
+	time.sleep(1)
+	GPIO.output(GPIO_TRIGGER, False)
+	while(GPIO.input(GPIO_ECHO) == 0):
+		start = time.time()
+	while(GPIO.input(GPIO_ECHO) == 1):
+		stop = time.time()
+	distance = ((stop-start)*34300)/2
+	print("distance :%.2f" % distance)
+
+#Pins Connection
+Vcc=5V Output
+Trig=RPI16 //This is present on kit left side on board
+ECHO=RPI18
+Gnd=GND
+
+
+
+//PIR
+import sys 
+sys.path.append('/home/pi/Adafruit-Raspberry-Pi-Python-Code-legacy/Adafruit_MCP230xx') from 
+Adafruit_MCP230xx import Adafruit_MCP230XX 
+import time 
+mcp=Adafruit_MCP230XX(busnum=1,address=0x21,num_gpios=16)
+mcp.config(0,mcp.INPUT) 
+mcp.pullup(0,1) 
+while True: 
+	i=mcp.input(0) 
+	time.sleep(1) 
+	if i==1: 
+		print "person detect" 
+		time.sleep(1) 
+	if i==0: 
+		print "person not detect") 
+		time.sleep(1) 
+
+#Pins Connection
+1pin-GND
+2pin-GPA0//left side of board
+3pin-VCC 5v
+
+//soil moisture content
+import time
+import Adafruit_GPIO.SPI as SPI
+import Adafruit_ MCP3008
+SPI_PORT=0
+SPI _DEVICE=0
+mcp=Adafruit_MCP3008.MCP3008(spi = SPI. SpiDev(SPI_ PORT,SPI_DEVICE))
+while True:
+ t=mcp. read_adc(0)
+ p= (100- (t/1023. 0) *100) 
+ print( ‘moisture content is', p)
+ time. sleep (3)
+
+#Pins connections
+VCC-VCC 5v
+GND-GND
+A0-A0
+
+
+
+
+#servo motor
+
+import RPi 
+import RPi.GPIO as GPIO 
+import time 
+ 
+GPIO.setmode(GPIO.BOARD) 
+GPIO.setup(22, GPIO.OUT) 
+ 
+pwm=GPIO.PWM(22,100) 
+pwm.start(5) 
+ 
+angle1=10 
+duty1= float(angle1)/10 + 2.5 
+angle2=160 
+duty2= float(angle2)/10 + 2.5 
+ck=0 
+ 
+while ck<=5: 
+	pwm.ChangeDutyCycle(duty1) 
+	time.sleep(0.8)  
+	pwm.ChangeDutyCycle(duty2) 
+	time.sleep(0.8) 
+	ck=ck+1 
+	time.sleep(1) 
+GPIO.cleanup() 
+
+#Pins connection
+ASH color- GND
+RED-VCC
+Yellow-RPI 22
+
+
+
+//Thingspeak the data will be uploaded to cloud
+import sys 
+#this path need to be taken where the BME280 module is present
+sys.path.append('/home/pi/Desktop/New2') 
+import BME280lib as bme 
+import urllib.request as ur 
+import time 
+while True: 
+    t, p, h = bme.readBME280All() 
+    print("Temperature:", t, "C") 
+    print("Pressure:", p, "hPa") 
+    print("Humidity:", h, "%") 
+#This is the api key which will be present when you create a new channel
+    st=f'https://api.thingspeak.com/update?api_key='API_KEY'&field1={t}&field2={p}&field3={h}' 
+    # Sending the data to ThingSpeak 
+    f = ur.urlopen(st) 
+    time.sleep(2) 
+
+#To see the output
+Go to thingspeak go to apikeys then copy the link of read feed channel and open it 
+
+
+
+//Bluetooth
+
+Server program(Server.py)
+
+import time
+import sys
+import bluetooth
+server_sock=bluetooth.BluetoothSocket(bluetooth.RFC)
+port=1
+server_sock.bind(("",port))
+server_sock.listen(1)
+client_sock, address=server_sock.accept()
+print("Accepted connection from ",address)
+while(True):
+	data=client_sock.recv(1024)
+	print("received [%s]"% data)
+	text=raw_input("ENTER YOUR MESSAGE:")
+	client sock.send(text)
+client sock.close()
+server_sock.close()
+
+
+Client program(Client.py)
+import time
+import bluetooth
+bd_addr="88:27:EB:5A:15:EF"// this you will get from command prompt when you type all those commands
+port=1
+sock=bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+sock.connect((bd_addr,port))
+while True:
+	text=raw_input("ENTER YOUR MESSAGE:")
+	sock.send(text)
+	data=sock.recv(1024)
+	print("received[%s] %data)
+	time.sleep(1)
+sock.close()
+
+Type this in command pompt
+sudo apt-get install bluetooth
+sudo apt-get install bluez
+sudo apt-get install python-bluez
+sudo bluetoothctl
+power on
+agent on
+default-agent
+discoverable on
+scan on
+
+#first run server.py  
+#then client.py
+
+
+Mqtt 
+
+
+
+mqtt.py 
+import paho.mqtt.client as mait
+def on_connect(client, userdata, flags, rc): 
+	print("Connected with MQTT Server" + str(rc)) 
+	client.subscribe(iot/vce")
+
+def on_message(client, userdata, msg):
+	print(msg.topic+str(msg.payload))
+
+client=matt Client()
+client.on_connect = on_connect
+client.on_message on message client.connect("test mosquito.org", 1863, 60)
+client.loop_forever()
+
+
+subs.py
+import paho.mqtt.publish as publish
+import BME280lib as b
+t,p,h=b.readBME280All()
+publish.single('iot/vce", "temperature hostname="test.mosquito.org")
+print("Done")
+
+
+#first run subs.py
+#then run mqtt.py
