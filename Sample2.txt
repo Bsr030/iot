@@ -1,0 +1,219 @@
+/////ALGORITHMS////
+/////////////////////////////////////
+FIRST
+
+      Input: Grammar G with non-terminals N and productions P.
+
+      1. Function first(X):
+         - Initialize set FIRST(X) = ∅.
+         - If X is a terminal, add X to FIRST(X) and return FIRST(X).
+         - If X is a non-terminal:
+           - For each production X -> α in P:
+             - For each symbol Y in α (from left to right):
+               - Add first(Y) - {ε} to FIRST(X).
+               - If ε is not in first(Y), break the loop.
+             - If all symbols in α derive ε, add ε to FIRST(X).
+         - Return FIRST(X).
+
+      Output: FIRST sets for all symbols in the grammar.
+
+/////////////////////////////////////
+FOLLOW
+
+			Input: Grammar G with start symbol S, non-terminals N, terminals T, and productions P.
+
+      Input: Grammar G with start symbol S, non-terminals N, terminals T, and productions P.
+
+      1. Function follow(A):
+         - Initialize set FOLLOW(A) = ∅.
+         - If A is the start symbol, add $ to FOLLOW(A).
+         - For each production B -> αAβ in P:
+           - Add first(β) - {ε} to FOLLOW(A).
+           - If β derives ε or FIRST(β) contains ε, add FOLLOW(B) to FOLLOW(A).
+         - Return FOLLOW(A).
+
+Output: FOLLOW sets for all non-terminals in the grammar.
+
+
+
+/////////////////////////////////////////////////////
+LL(1)
+      Input: Grammar G with non-terminals N, terminals T, and productions P.
+
+      1. Function first(α):
+         - Initialize set FIRST = ∅.
+         - For each symbol X in α:
+           - If X is terminal, add X to FIRST and break.
+           - If X is non-terminal:
+             - Add FIRST(X) - {ε} to FIRST.
+             - If ε is not in FIRST(X), break.
+         - If all symbols in α derive ε, add ε to FIRST.
+         - Return FIRST.
+
+      2. Function follow(A):
+         - Initialize set FOLLOW = ∅.
+         - Add $ (end of input marker) to FOLLOW if A = S'.
+         - For each production B -> αAβ:
+           - Add FIRST(β) - {ε} to FOLLOW.
+           - If β is ε or FIRST(β) contains ε, add FOLLOW(B) to FOLLOW.
+         - Return FOLLOW.
+      3. Initialize LL(1) parsing table M with empty entries.
+      4. For each production A -> α in P:
+         - For each terminal a in FIRST(α):
+           - Set M[A, a] to A -> α.
+         - If ε is in FIRST(α):
+           - For each terminal b in FOLLOW(A):
+             - Set M[A, b] to A -> α.
+         - If ε is in FIRST(α) and $ is in FOLLOW(A):
+           - Set M[A, $] to A -> α.
+
+      Output: Parsing table M representing the LL(1) parser.
+
+
+
+///////////////////////////////////////////////////////
+
+SLR(1)
+
+      SLR(1) Parsing Table Construction Pseudo-code:
+
+      Input: Grammar G in augmented form with start symbol S', set of non-terminals N, terminals T, and productions P.
+
+      1. Function closure(I):
+         - Initialize closure set C = I.
+         - Repeat until no new items can be added to C:
+           - For each item [A -> α.Bβ, a] in C:
+             - For each production B -> γ:
+               - If [B -> .γ, b] is not already in C, add it.
+         - Return C.
+
+      2. Function goto(I, X):
+         - Initialize set J = ∅.
+         - For each item [A -> α.Xβ, a] in I:
+           - If β ≠ ε and X is the next symbol after B in β:
+             - Add [A -> αX.β, a] to J.
+         - Return closure(J).
+
+      3. Function first(α):
+         - Initialize set FIRST = ∅.
+         - For each symbol X in α:
+           - If X is terminal, add X to FIRST and break.
+           - If X is non-terminal:
+             - Add FIRST(X) - {ε} to FIRST.
+             - If ε is not in FIRST(X), break.
+         - If all symbols in α derive ε, add ε to FIRST.
+         - Return FIRST.
+
+      4. Function follow(A):
+         - Initialize set FOLLOW = ∅.
+         - Add $ (end of input marker) to FOLLOW if A = S'.
+         - For each production B -> αAβ:
+           - Add FIRST(β) - {ε} to FOLLOW.
+           - If β is ε or FIRST(β) contains ε, add FOLLOW(B) to FOLLOW.
+         - Return FOLLOW.
+
+      5. Constructing the LR(0) items and states:
+         - Initialize set of LR(0) items LR0_items = ∅.
+         - Create initial item I0 = closure({[S' -> .S]}).
+         - Add I0 to LR0_items.
+         - Initialize set of states states = {I0}.
+         - Repeat until no new states are added:
+           - For each state I in states:
+             - For each grammar symbol X:
+               - Let J = goto(I, X).
+               - If J is not empty and not already in states:
+                 - Add J to states.
+                 - Add J to LR0_items.
+         - Note: states now contains all LR(0) states.
+
+      6. Constructing the SLR(1) parsing table:
+         - Initialize parsing table M with empty entries.
+         - For each state I in states:
+           - For each item [A -> α.Bβ, a] in I:
+             - If B -> γ is a production:
+               - If B -> γ is the augmented production S' -> S., set M[I, a] to "Accept" if a is $.
+               - If B -> γ is not the augmented production and a is a terminal:
+                 - Set M[I, a] to "Shift" followed by the state number of goto(I, a).
+             - If B -> γ is not the augmented production and B ≠ S':
+               - For each terminal b in FOLLOW(B):
+                 - Set M[I, b] to "Reduce B -> γ".
+
+      Output: Parsing table M representing the SLR(1) parser.
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+CLR
+
+CLR(1) Parsing Table Construction Pseudo-code:
+
+      Input: Grammar G in augmented form with start symbol S', set of non-terminals N, terminals T, and productions P.
+
+      1.Function closure(I):*
+      - Initialize closure set C = I.
+      - Repeat until no new items can be added to C:
+        - For each item [A -> α.Bβ, a] in C:
+          - For each production B -> γ:
+            - For each terminal b in FIRST(βa):
+              - If [B -> .γ, b] is not already in C, add it.
+      - Return C.
+
+      2.Function goto(I, X):*
+      - Initialize set J = ∅.
+      - For each item [A -> α.Xβ, a] in I:
+        - If β ≠ ε and X is the next symbol after B in β:
+          - Add [A -> αX.β, a] to J.
+      - Return closure(J).
+
+
+      3. Function first(α):
+         - Initialize set FIRST = ∅.
+         - For each symbol X in α:
+           - If X is terminal, add X to FIRST and break.
+           - If X is non-terminal:
+             - Add FIRST(X) - {ε} to FIRST.
+             - If ε is not in FIRST(X), break.
+         - If all symbols in α derive ε, add ε to FIRST.
+         - Return FIRST.
+
+      4. Function follow(A):
+         - Initialize set FOLLOW = ∅.
+         - Add $ (end of input marker) to FOLLOW if A = S'.
+         - For each production B -> αAβ:
+           - Add FIRST(β) - {ε} to FOLLOW.
+           - If β is ε or FIRST(β) contains ε, add FOLLOW(B) to FOLLOW.
+         - Return FOLLOW.
+
+			5.Construct the set of CLR(1) items and states using the refined definitions of closure and goto.
+      
+      6. Construct the CLR(1) parsing table:
+         - For each state I and each item [A -> α.Xβ, a] in I where X is a terminal:
+           - Set the action for M[I, X] to "shift" to the state returned by goto(I, X).
+         - For each state I and each item [A -> α., a] in I:
+           - Set M[I, a] to "reduce A -> α".
+           - If A -> α is the augmented production S' -> S. and a = $, set M[I, a] to "accept".
+
+      Output: Parsing table M representing the CLR(1) parser.
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+LALR  
+           similar to clr at end add
+              Input: Grammar G with start symbol S', non-terminals N, terminals T, and productions P.
+
+        1. Augment the grammar with a new start symbol S' -> S.
+        2. Compute the CLR(1) item sets using closure and goto.
+        3. Merge states with the same core (i.e., items ignoring lookahead) where possible to form LALR states.
+        4. Construct the LALR parsing table similarly to CLR:
+           - Use the merged LALR states.
+           - For shift and reduce actions, handle conflicts by choosing reductions over shifts where applicable and resolving 
+           	reduce/reduce conflicts based on grammar-specific priorities or rules.
+
+        Output: Parsing table M representing the LALR parser.
+
+
+
