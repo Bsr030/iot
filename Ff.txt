@@ -1,0 +1,95 @@
+# Define the grammar as a dictionary where the key is the non-terminal and the value is a list of productions
+grammar = {
+    'S': [['A', 'B', 'C'], ['B']],
+    'A': [['a'], ['ε']],
+    'B': [['b'], ['ε']],
+    'C': [['c']]
+}
+
+# Function to compute FIRST of a single symbol
+def first(symbol, grammar, first_sets):
+    # If symbol is a terminal, return the set containing the symbol
+    if symbol.islower() or symbol == 'ε':
+        return {symbol}
+    
+    # If FIRST set is already computed for the symbol, return it
+    if symbol in first_sets:
+        return first_sets[symbol]
+
+    # Initialize FIRST set for the symbol
+    first_set = set()
+    
+    # Iterate over all productions of the non-terminal symbol
+    for production in grammar[symbol]:
+        for sym in production:
+            # Add FIRST(sym) - {ε} to FIRST(symbol)
+            sym_first = first(sym, grammar, first_sets)
+            first_set.update(sym_first - {'ε'})
+            
+            # If ε is not in FIRST(sym), stop
+            if 'ε' not in sym_first:
+                break
+        else:
+            # If we didn't break, it means all symbols in the production derive ε
+            first_set.add('ε')
+
+    # Save the computed FIRST set for the symbol
+    first_sets[symbol] = first_set
+    return first_set
+
+# Compute FIRST sets for all non-terminals in the grammar
+def compute_first_sets(grammar):
+    first_sets = {}
+    for non_terminal in grammar:
+        first(non_terminal, grammar, first_sets)
+    return first_sets
+
+# Function to compute FOLLOW of a single non-terminal
+def follow(non_terminal, grammar, first_sets, follow_sets, start_symbol):
+    # Initialize FOLLOW set for the non-terminal if not already done
+    if non_terminal not in follow_sets:
+        follow_sets[non_terminal] = set()
+        # If the non-terminal is the start symbol, add '$' to its FOLLOW set
+        if non_terminal == start_symbol:
+            follow_sets[non_terminal].add('$')
+    
+    # Iterate over all productions in the grammar
+    for lhs in grammar:
+        for production in grammar[lhs]:
+            # Iterate over the production to find occurrences of the non-terminal
+            for i in range(len(production)):
+                if production[i] == non_terminal:
+                    # Everything after the non-terminal in the production
+                    beta = production[i + 1:]
+                    if beta:
+                        # Add FIRST(beta) - {ε} to FOLLOW(non_terminal)
+                        beta_first = set()
+                        for symbol in beta:
+                            beta_first.update(first(symbol, grammar, first_sets))
+                            if 'ε' not in first(symbol, grammar, first_sets):
+                                break
+                        beta_first.discard('ε')
+                        follow_sets[non_terminal].update(beta_first)
+                        
+                        # If beta derives ε, add FOLLOW(lhs) to FOLLOW(non_terminal)
+                        if all('ε' in first(symbol, grammar, first_sets) for symbol in beta):
+                            follow_sets[non_terminal].update(follow(lhs, grammar, first_sets, follow_sets, start_symbol))
+                    else:
+                        # If there is no beta, add FOLLOW(lhs) to FOLLOW(non_terminal)
+                        if lhs != non_terminal:
+                            follow_sets[non_terminal].update(follow(lhs, grammar, first_sets, follow_sets, start_symbol))
+    
+    return follow_sets[non_terminal]
+
+# Compute FOLLOW sets for all non-terminals in the grammar
+def compute_follow_sets(grammar, first_sets, start_symbol):
+    follow_sets = {}
+    for non_terminal in grammar:
+        follow(non_terminal, grammar, first_sets, follow_sets, start_symbol)
+    return follow_sets
+
+# Example usage
+first_sets = compute_first_sets(grammar)
+follow_sets = compute_follow_sets(grammar, first_sets, 'S')
+for non_terminal, follow_set in follow_sets.items():
+    print(f"FOLLOW({non_terminal}) = {follow_set}")
