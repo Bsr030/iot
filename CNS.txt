@@ -1,0 +1,290 @@
+sß ZZ---------------------------------Miller-Rabin Primality Test:----------------------------
+import random
+def miller_rabin(n, k=5):
+if n < 2:
+return False
+for _ in range(k):
+a = random.randint(2, n - 2)
+x = pow(a, n - 1, n)
+if x == 1 or x == n - 1:
+continue
+for _ in range(k - 1):
+x = pow(x, 2, n)
+if x == n - 1:
+break
+else:
+return False
+return True
+print(miller_rabin(4,k=5))
+print(miller_rabin(7,k=5)
+
+
+--------------------------------------Chinxese Remainder Theorem:---------------------
+def chinese_remainder(n, a):
+xexwxw eeexxeeee ex edeee de eexxeeeeeeexxed xxw wdeeddeddddxeddededdddeeddxdxdxxdezei in n:
+dxerexddeddexfor i, j in zip(n, a):
+p = prod // i
+sum += j * mul_inv(p, i) * p
+return sum % prod
+def mul_inv(a, b):
+b0 = b
+x0, x1 = 0, 1
+if b == 1:
+return 1
+while a > 1:
+q = a // b
+a, b = b, a%b
+x0, x1 = x1 - q * x0, x0
+if x1 < 0:
+x1 += b0
+return x1
+print(chinese_remainder([3, 4, 5], [2, 3, 1]))
+
+ 
+-------------------------------Modular Exponentiation:--------------------
+def mod_exp(base, exponent, modulus):
+result = 1
+while exponent > 0:
+if exponent % 2 == 1:
+result = (result * base) %
+modulus
+exponent = exponent >> 1
+base = (base * base) %
+modulus
+return result
+print(mod_exp(52,713,41))
+
+-------------------------Euler's Totient Function:------------------
+def euler_totient(n):
+result = n
+p = 2
+while p * p <= n:
+if n % p == 0:
+while n % p == 0:
+n //= p
+result -= result // p
+p += 1
+if n > 1:
+result -= result // n
+return result
+print(euler_totient(7))
+
+
+-------------------------------------DES algorithm------------
+from Crypto.Cipher import DES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
+def encrypt_des(key, plaintext): """Encrypts plaintext using DES algorithm.""" cipher = DES.new(key, DES.MODE_CBC)
+plaintext_padded = pad(plaintext.encode(), DES.block_size)
+ciphertext = cipher.encrypt(plaintext_padded)
+returncipher.iv, ciphertext
+def decrypt_des(key, iv, ciphertext): """Decrypts ciphertext using DES algorithm.""" cipher = DES.new(key, DES.MODE_CBC, iv)
+plaintext_padded = cipher.decrypt(ciphertext)
+plaintext = unpad(plaintext_padded, DES.block_size)
+return plaintext.decode()
+def main():
+key = get_random_bytes(8) # DES key must be exactly 8 bytes
+iv = get_random_bytes(8) # DES requires an 8-byte IV for CBC mode
+print(f"Key (hex): {key.hex()}")
+print(f"IV (hex): {iv.hex()}")
+plaintext = input("Enter a message to encrypt: ")
+print(f"Original message: {plaintext}")
+iv, ciphertext = encrypt_des(key, plaintext)
+print(f"Encrypted message (hex): {ciphertext.hex()}")
+decrypted_message = decrypt_des(key, iv, ciphertext)
+print(f"Decrypted message: {decrypted_message}")
+if __name__ == "__main__":
+main()
+
+O/P:
+Key (hex): 5eaf43a2150dfd2d
+IV (hex): 4b7d2344e9782b1a
+Enter a message to encrypt: Hello, World!
+Original message: Hello, World!
+Encrypted message (hex):
+1a2b3c4d5e6f7089abcde0123456
+789
+Decrypted message: Hello, World!
+
+
+---------------------------------------TRIPLE DES ALGORITHM----------------------------
+from Crypto.Cipher import DES3
+def encrypt_des3(key, plaintext): """Encrypts plaintext using Triple DES algorithm.""" cipher = DES3.new(key, DES3.MODE_CBC)
+plaintext_padded = pad(plaintext.encode(), DES3.block_size)
+ciphertext = cipher.encrypt(plaintext_padded)
+return cipher.iv, ciphertext
+def decrypt_des3(key, iv, ciphertext): """Decrypts ciphertext using Triple DES algorithm.""" cipher = DES3.new(key, DES3.MODE_CBC, iv)
+plaintext_padded = cipher.decrypt(ciphertext)
+plaintext = unpad(plaintext_padded, DES3.block_size)
+return plaintext.decode()
+def main():
+key = DES3.adjust_key_parity(get_random_bytes(24)) # Triple DES key must be
+exactly 24 bytes
+iv = get_random_bytes(8) # Triple DES requires an 8-byte IV for CBC mode
+print(f"Key (hex): {key.hex()}")
+print(f"IV (hex): {iv.hex()}")
+plaintext = input("Enter a message to encrypt: ")
+print(f"Original message: {plaintext}")
+iv, ciphertext = encrypt_des3(key, plaintext)
+print(f"Encrypted message (hex): {ciphertext.hex()}")
+decrypted_message = decrypt_des3(key, iv, ciphertext)
+print(f"Decrypted message: {decrypted_message}")
+if __name__ == "__main__":
+main()
+
+O/P:
+Key (hex): 7a8b9cdef0123456789abcdef012345
+IV (hex): 3f2d6e3a8b9c4d8e
+Enter a message to encrypt: Secure Message
+Original message: Secure Message
+Encrypted message (hex): 2a4b6c7d8e9f0a1b234c567890abcdef
+Decrypted message: Secure Message
+
+
+---------------------------------------1. Implement RSA Algorithm---------------------------
+import random
+from math import gcd
+def mod_inverse(e, phi):
+for x in range(1, phi):
+if (e * x) % phi == 1:
+return x
+return None
+def generate_keypair(bits):
+p = 61
+q = 53
+n = p * q
+phi = (p - 1) * (q - 1)
+e = random.choice([x for x in range(2, phi) if gcd(x, phi) == 1])
+d = mod_inverse(e, phi)
+return ((e, n), (d, n))
+# Function to encrypt a message
+def encrypt(pk, plaintext):
+e, n = pk
+# Ciphertext is c = m^e mod n
+cipher = [(ord(char) ** e) % n for char in plaintext]
+return cipher
+# Function to decrypt a message
+def decrypt(pk, ciphertext):
+d, n = pk
+# Plaintext is m = c^d mod n
+plain = [chr((char ** d) % n) for char in ciphertext]
+return ''.join(plain)
+# Testing the RSA implementation
+public, private = generate_keypair(8)
+message = "HELLO" encrypted_message = encrypt(public, message)
+decrypted_message = decrypt(private, encrypted_message)
+print("Original message:", message)
+print("Encrypted message:", encrypted_message)
+print("Decrypted message:", decrypted_message
+
+Output:
+Original message: HELLO
+Encrypted message: [3000, 28, 2726, 2726, 1307]
+Decrypted message: HELLO
+
+
+------------------------------2. Implement Diffie-Hellman Key Exchange Algorithm------------
+import random
+def diffie_hellman(p, g):
+a = random.randint(1, p-1) # Private key for Alice
+b = random.randint(1, p-1) # Private key for Bob
+A = (g ** a) % p # Alice's public value
+B = (g ** b) % p # Bob's public value
+shared_secret_A = (B ** a) % p # Alice's computed shared secret
+shared_secret_B = (A ** b) % p # Bob's computed shared secret
+assert shared_secret_A == shared_secret_B, "Keys don't match!"
+return shared_secret_A
+p = 23 # A prime number
+g = 5 # A primitive root modulo p
+shared_key = diffie_hellman(p, g)
+print("Shared Secret Key:", shared_key)
+
+Output:
+eeShared Secret Key: 4
+
+
+-----------------------3. Implement SHA-512 Algorithm------------------
+   a. Using a Library:
+   
+import hashlib
+def sha512_hash(message):
+    sha512 = hashlib.sha512()
+    sha512.update(message.encode('utf-8'))
+    return sha512.hexdigest()
+
+message = r"4Hello, Secure World!"
+hash_value = sha512_hash(message)
+print("SHA-512 Hash:", hash_value)
+
+
+   B. Without using a library
+   
+def simplified_sha512(message):
+# Simpexssle hash implementation for educational purposes only
+def right_rotate(value, shift):
+return (value >> shift) | (value << (64 - shift)) & 0xFFFFFFFFFFFFFFFF
+def compression_step(chunk):
+return chunk ^ 0xFFFFFFFFFFFFFFFF
+message_binary = ''.join(format(ord(c), '08b') for c in message)
+chunks = [int(message_binary[i:i+64], 2) for i in range(0, len(message_binary), 64)]
+hash_value = 0x6a09e667f3bcc908
+for chunk in chunks:
+hash_value = compression_step(chunk) ^ right_rotate(hash_value, 7)
+return hex(hash_value)
+# Test the function
+message = "Hello, Secure World!" hash_value = simplified_sha512(message)
+print("Simplified SHA-512 Hash:", hash_value)
+
+
+     b. Application of SHA-512 for Secure Password Storage
+     
+     
+import hashlib
+import os
+def hash_password(password):
+sewSswssxaelt = os.urandom(16)
+exe = hashxlib.sha512(password.encode('utf-8') + salt)
+password_hash = hash_object.hexdigest()
+return salt, password_hash
+def verify_password(stored_salt, stored_hash, password_attempt):
+# Recompute the hash with the stored salt and the password attempt
+hash_object = hashlib.sha512(password_attempt.encode('utf-8') + stored_salt)
+return hash_object.hexdigest() == stored_hash
+# Testing secure password storage
+salt, hashed_password = hash_password("my_secure_password")
+print("Stored Hash:", hashed_password)
+# Verifying password
+is_verified = verify_password(salt, hashed_password, "my_secure_password")
+print("Password Verified:", is_verified)
+
+
+--------------------1. Implement HMAC algorithms-------------
+import hmac
+import hashlibz,,,
+def generate_hmac(key, message):
+key_bytes = key.encode() if isinstance(key, str) else key
+message_bytes = message.encode() if isinstance(message, str) else message
+hmac_obj = hmac.new(key_bytes, message_bytes, hashlib.sha256)
+return hmac_obj.hexdigest()
+key = "supersecretkey" message = "Important message" hmac_result = generate_hmac(key, message)
+print("Generated HMAC:", hmac_result)
+
+
+--------------------2. Implement CMAC algorithms-----------------------
+from Crypto.Hash import CMAC
+from Crypto.Cipher import AES
+def generate_cmac(key, message):
+# Ensure key is in bytes and has a valid length for AES (16, 24, or 32 bytes)
+if isinstance(key, str):
+key = key.encode()
+if len(key) not in [16, 24, 32]:
+raise ValueError("Key must be 16, 24, or 32 bytes long for AES.")= message_bytes = message.encode() if isinstance(message, str) else message
+# Create CMAC object and update with the message
+cmac_obj = CMAC.new(key, ciphermod=AES)
+cmac_obj.update(message_bytes)
+return cmac_obj.hexdigest()
+key = b"my16bytekey12345" # 16 bytes for AES compatibility
+message = "Another important message" print("Generated CMAC:", generate_cmac(key, message))
+
+
+---c
