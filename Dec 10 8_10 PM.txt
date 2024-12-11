@@ -1,0 +1,1128 @@
+WEEK 1:
+     **Hosting a static Website in amazon S3 bucket**
+     
+Task 1: Extracting the files that you need for this lab
+-->In this task, you extract the files that you need to create the static website.
+-->Download the .zip file that you need for this lab.
+-->Extract the files to your computer. 
+-->Notice that you have an index.html file and images folder that contain image files.
+Task 2: Creating an S3 bucket to host your static website.
+-->Open the Amazon S3 console.
+-->Create a bucket in the US East (N. Virginia) us-east-1 AWS Region to host your static website.
+Tip: You must clear Block all public access and enable ACLs.
+-->Enable static website hosting on your bucket.
+Tip: You use the index.html file for your index document.
+Task 3: Uploading content to your S3 bucket
+-->In this task, you upload the static files to your S3 bucket.
+-->Upload the index.html file and the CSS and images folders to your S3 bucket.
+-->In a separate web browser tab, open the endpoint link for your static website.
+Task 4: Creating a bucket policy to grant public read access
+--> Go to the bucket created 
+-->click on the permissions 
+--> Go to the Bucket policy
+--> copy Bucket ARN
+-->Click on Policy Generator 
+    Select Type of Policy:S3 Bucket Policy
+    Principal:*
+    Actions:getObject
+    Amazon Resource Name (ARN):(copied arn from the top)
+    select get statement 
+    click on the generate policy and copy the policy and paste at bucket policy 
+
+index.html
+<html>
+<head><title>Webpage</title></head>
+<body>
+<h1>K. Sree Indira Sivani</h1>
+<h2>1602-21-733-052</h2>
+</body>
+</html>
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::alphabucket1234/*"
+        }
+    ]
+}
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+WEEK 2:
+     **Creating A Virtual Machine Using Amazon EC2**
+
+Task 1: Launch Your Amazon EC2 Instance
+-->Give the instance the name Web Server.
+-->In the list of available Quick Start AMIs, keep the default Amazon Linux AMI selected.
+   Also keep the default Amazon Linux 2023 AMI selected.
+-->In the Instance type panel, keep the default t2.micro selected.
+-->For Key pair name - required, choose vockey. 
+-->Next to Network settings, choose Edit.
+   For VPC, select Lab VPC.
+-->Keep the default subnet PublicSubnet1. 
+-->Under Firewall (security groups), choose  Create security group and configure:
+   Security group name: Web Server security group
+   Description: Security group for my web server
+-->In the Configure storage section, keep the default settings.
+-->Expand  Advanced details.
+   For Termination protection, select Enable.
+-->Scroll to the bottom of the page and then copy and paste the code shown below into the User data box:
+  #!/bin/bash
+  dnf install -y httpd
+  systemctl enable httpd
+  systemctl start httpd
+  echo '<html><h1>Hello From Your Web Server!</h1></html>' > /var/www/html/index.html
+-->At the bottom of the Summary panel choose Launch instance
+-->View all instances 
+-->Wait for your instance to display the following:
+   Instance State:  Running
+   Status Checks:   2/2 checks passed
+Task 2: Monitor Your Instance 
+-->Choose the Status checks tab-Notice that both the System reachability and Instance reachability checks have passed.
+-->Choose the Monitoring tab-Amazon EC2 sends metrics to Amazon CloudWatch for your EC2 instances. Basic (five-minute) monitoring is enabled by default. You can also enable detailed (one-minute) monitoring.
+-->In the Actions  menu towards the top of the console, select Monitor and troubleshoot  Get system log.
+-->Scroll through the output and note that the HTTP package was installed from the user data that you added when you created the instance.
+-->Choose Cancel.
+-->Ensure Web Server is still selected. Then, in the Actions  menu, select Monitor and troubleshoot  Get instance screenshot.
+-->Choose Cancel.
+Task 3: Update Your Security Group and Access the Web Server
+-->Ensure Web Server is still selected.  Choose the Details tab.
+-->Copy the Public IPv4 address and paste in new tab and let it load.
+-->you wil not be able to access now
+-->Keep the browser tab open, but return to the EC2 Console tab.
+-->In the left navigation pane, choose Security Groups.
+-->Select  Web Server security group.
+-->Choose the Inbound rules tab.
+-->The security group currently has no inbound rules.
+  Choose Edit inbound rules, select Add rule and then configure:
+        Type: HTTP
+        Source: Anywhere-IPv4
+        Choose Save rules
+-->Return to the web server tab that you previously opened and refresh  the page.
+        You should see the message Hello From Your Web Server!
+
+Task 4: Resize Your Instance: Instance Type and EBS Volume
+
+-->On the EC2 Management Console, in the left navigation pane, choose Instances and then select the  Web Server instance.
+-->In the Instance state  menu, select Stop instance.
+       Choose Stop
+-->Wait for the Instance state to display:  Stopped.
+-->Select the Web Server instance, then in the Actions  menu, select Instance settings  Change instance type, then configure:
+			Instance Type: t2.small
+			Choose Apply
+-->Select the Web Server instance, then in the Actions  menu, select Instance settings   Change stop protection. Select Enable and then Save the change.
+-->With the Web Server instance still selected, choose the Storage tab, select the name of the Volume ID, then select the checkbox next to the volume that displays.
+-->In the Actions  menu, select Modify volume.
+-->The disk volume currently has a size of 8 GiB. You will now increase the size of this disk.
+-->Change the size to: 10 NOTE: You may be restricted from creating Amazon EBS volumes larger than 10 GB in this lab.
+			Choose Modify
+			Choose Modify again to confirm and increase the size of the volume.
+-->In left navigation pane, choose Instances.
+-->Select the Web Server instance.
+-->In the Instance state  menu, select Start instance. 
+
+Task 5: Explore EC2 Limits
+-->In the AWS Management Console, in the search box next to  Services, search for and choose Service Quotas
+-->Choose AWS services from the navigation menu and then in the AWS services Find services search bar, search for ec2 and choose Amazon Elastic Compute Cloud (Amazon EC2).
+-->In the Find quotas search bar, search for running on-demand, but do not make a selection. Instead, observe the filtered list of service quotas that match the criteria.
+
+Task 6: Test Stop Protection
+-->In the AWS Management Console, in the search box next to  Services, search for and choose EC2 to return to the EC2 console.
+-->In left navigation pane, choose Instances.
+-->Select the Web Server instance and in the Instance state  menu, select Stop instance.
+			Then choose Stop
+			Note that there is a message that says: Failed to stop the instance i-1234567xxx. The instance 'i-1234567xxx' may not be stopped. Modify its 'disableApiStop' instance attribute and try again.
+-->In the Actions  menu, select Instance settings  Change stop protection.
+			Remove the check next to  Enable.
+			Choose Save
+-->You can now stop the instance.
+-->Select the Web Server instance again and in the Instance state  menu, select Stop instance.
+			Choose Stop
+      
+-->Choose submit     
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+WEEK 3:
+     **Creating Amazon EFS**
+
+Task 1: Creating a security group to access your EFS file system
+-->At the top of the AWS Management Console, in the search box, search for and choose EC2.
+-->In the navigation pane on the left, choose Security Groups.
+-->Copy the Security group ID of the EFSClient security group to your text editor.
+		The Group ID should look similar to sg-03727965651b6659b.
+-->Choose Create security group then configure:
+    Security group name: EFS Mount Target
+    Description: Inbound NFS access from EFS clients
+-->VPC: Lab VPC
+-->Under the Inbound rules section, choose Add rule then configure:
+    Type: NFS
+    Source:Custom
+    In the Custom box, paste the security group's Security group ID that you copied to your text editor
+-->Choose Create security group.
+Task 2: Creating an EFS file system
+-->At the top of the AWS Management Console, in the search box, search for and choose EFS.
+-->Choose Create file system.
+-->In the Create file system window, choose Customize.
+    1.Uncheck  Enable Automatic backups.
+    2.Lifecycle management:for Transition into IA  Select None.
+    3.In the Tags optional section, configure:
+        Key: Name
+        Value: My First EFS File System
+    4.Choose Next.
+-->For VPC, select Lab VPC.
+-->Detach the default security group from each Availability Zone mount target by choosing the  check box on each default security group.
+-->Attach the EFS Mount Target security group to each Availability Zone mount target by choosing EFS Mount Target for each Availability Zone.
+-->Choose Next.
+-->choose Next.
+-->Review your configuration.
+-->Choose Create.
+Task 3: Connecting to your EC2 instance
+-->To connect to the EC2 instance, select the ec2 module from amazon console 
+--> click on the instance EFS client
+--> go to actions and click on connect 
+--> In that go to session manager tab and connect 
+-->session is opened
+Task 4: Creating a new directory and mounting the EFS file system
+-->In your EC2 terminal session, run the following command to install the required utilities:
+      sudo su -l ec2-user
+      sudo yum install -y amazon-efs-utils
+      Run the following command to create directory for mount: sudo mkdir efs.
+-->At the top of the AWS Management Console, in the search box, search for and choose EFS. 
+-->Choose My First EFS File System.
+-->In the Amazon EFS Console, on the top right corner of the page, choose Attach to open the Amazon EC2 mount instructions.
+-->In your EC2 terminal session, Copy and run the entire command in the Using the NFS client section.
+    The mount command should look similar to this example:
+    sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-bce57914.efs.us-west-2.amazonaws.com:/ efs
+-->Get a full summary of the available and used disk space usage by entering:
+    sudo df -hT
+Task-5:Monitoring performance by using Amazon CloudWatch
+-->At the top of the AWS Management Console, in the search box, search for and choose CloudWatch. 
+-->In the navigation pane on the left, choose All Metrics.
+-->In the All metrics tab, choose EFS.
+-->Choose File System Metrics.
+-->Select the row that has the PermittedThroughput Metric Name.
+-->click on add graph.(graph is visible on top)
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+WEEK 4:
+     **Creating an Amazon RDS Database**
+     
+Task 1: Creating an Amazon RDS database
+-->At the top of the AWS Management Console, in the search box, enter and select RDS.
+-->Choose Create database.
+-->Under Engine options, select MySQL.
+-->Under the Templates section, select  Dev/Test.
+-->Under the Availability and durability section, select   Single DB instance 
+-->Under the Settings section, configure these options:
+        DB instance identifier: inventory-db
+        Master username: admin
+-->Under Credentials management, choose Self managed and configure as follows:
+        Master password: lab-password
+        Confirm master password: lab-password
+-->Under the Instance configuration section, configure these options:
+        Select Burstable classes (includes t classes).
+        Select db.t3.micro
+-->In the Storage section next
+        For Storage type choose General Purpose SSD (gp2) from the Dropdown menu.
+        For Allocated storage  enter 20.
+-->Expand Storage autoscaling 
+        Clear or Deselect Enable storage autoscaling.
+-->Under the Connectivity section, configure these options: 
+        Virtual Private Cloud (VPC): Lab VPC
+        DB subnet group: Keep the default selection
+				Existing VPC security groups: 
+							Choose DB-SG. It will be highlighted. 
+							Remove the default security group.
+-->Under Monitoring section, Clear (turn off) the Enable Enhanced monitoring option
+-->Expand the Additional configuration panel, then configure these settings:
+				Initial database name: inventory
+-->Choose Create database
+				Before you continue to the next task, the database instance status must be Available. This process might take several minutes.
+				Note: If you receive a prompt Suggested add-ons for inventory-db, choose close.
+
+Task 2: Configuring web application communication with a database instance
+-->At the Top of these instructions, from the i AWS Details section, copy the value for AppServerPublicIP .
+-->Open a new web browser tab, paste the IP address you copied into the address bar, and then press ENTER.
+-->The web application should appear. It does not display much information because the application is not yet connected to the database.
+-->Choose Settings.
+-->Return to the AWS Management Console, but do not close the application tab. (You will return to it soon).
+-->From the  Services menu, choose RDS to open the RDS console.
+-->In the left navigation pane, choose Databases.
+-->Choose inventory-db.
+-->Go to the Connectivity & Security section and copy the Endpoint to your clipboard.
+				It should look similar to this example: inventory-db.crwxbgqad61a.rds.amazonaws.com
+-->Return to the browser tab with the Inventory application, and enter these values:
+				Endpoint: Paste the endpoint you copied earlier
+        * ** Database: ** `inventory`
+        * ** Username: ** `admin`
+        * ** Password: ** `lab-password`
+        * Choose ** Save **
+In web page:
+-->Add inventory,  edit, and delete inventory information by using the web application.
+-->Insert new records into the table. Ensure that the table has 5 or more inventory records before submitting your work.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+WEEK 5:
+     **Deploy a NodeJS Application in a Docker Container**
+
+Task 1: Launching and Connecting to your EC2 instance
+-->Launch an EC2 instance in us-east-1 region
+      -Ubuntu AMI
+      -Key pair: vockey
+-->Connect to the instance from the console using EC2 Instance Connect
+    Click on Launch instance
+    Click on connect to your instance and then click on connect
+Task 2: Install and set up Dependencies
+-->Run the following commands to install dependencies
+	sudo apt update
+	sudo apt install -y nodejs npm
+	sudo apt install -y docker.io
+	sudo systemctl enable docker
+	sudo systemctl start docker
+Task 3: Create the Project Files
+-->Run the following commands to create and change to Project Repository
+	mkdir node-docker-app
+	cd node-docker-app
+-->Create app.js File
+	nano app.js
+Put the below code in app.js
+      const http = require("http");
+      const server = http.createServer((req, res) => {
+          res.setHeader("Content-Type", "text/plain");
+          res.end("Hello from Node.js!");
+      });
+      server.listen(3000);
+-->Initialize NodeJS Project
+	npm init -y
+-->Create a .dockerignore File
+	nano .dockerignore
+	Write the below lines in .dockerignore file
+    node_modules
+    npm-debug.log
+-->Create Dockerfile
+	nano Dockerfile
+	Write the below commands in Dockerfile
+        FROM node:18
+        WORKDIR /usr/src/app
+        COPY package*.json ./
+        RUN npm install
+        COPY . .
+        EXPOSE 3000
+        CMD ["node", "app.js"]
+Task 4: Build and Run Docker Container and Access the Application
+-->Build Docker Image using following command (Admin privilege is important)
+	sudo docker build -t hello-world-node.
+-->Run Docker Container using following command (Admin privilege is important)
+	sudo docker run -d -p 3000:3000 hello-world-node
+-->Edit Security Group of EC2 Instance to add Inbound Rules allowing TCP 3000 Port Requests from anywhere-IPv4
+     Select Type : All
+     TCPSource: Anywhere
+-->Access the Application by opening the following URL (Copy and paste the EC2 Public IP)
+	Go to EC2 
+	Click on instances , select your instance and copy your public id
+  EC2-Public-IP:3000
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+WEEK 7:
+     **Implementing a Serverless Architecture on AWS**
+
+Task 1: Creating a Lambda function to load data
+-->On the AWS Management Console, in the search box, enter and choose Lambda to open the Lambda console.
+-->Choose Create function
+-->For Function name, enter Load-Inventory.
+-->For Runtime, choose Python 3.8.
+-->Expand  Change default execution role, and configure the following options:
+				For Execution role, choose Use an existing role.
+				For Existing role, choose Lambda-Load-Inventory-Role.
+-->Choose Create function.
+-->In the Code source section, in the Environment pane, choose lambda_function.py.
+-->In the code editor for the lambda_function.py file, delete all the default code.
+-->In the Code source editor, copy and paste the following code:
+
+# Load-Inventory Lambda function
+# This function is invoked by an object being created in an Amazon S3 bucket.
+# The file is downloaded and each line is inserted into a DynamoDB table.
+import json, urllib, boto3, csv
+# Connect to S3 and DynamoDB
+s3 = boto3.resource('s3')
+dynamodb = boto3.resource('dynamodb')
+# Connect to the DynamoDB tables
+inventoryTable = dynamodb.Table('Inventory');
+# This handler is run every time the Lambda function is invoked
+def lambda_handler(event, context):
+  # Show the incoming event in the debug log
+  print("Event received by Lambda function: " + json.dumps(event, indent=2))
+  # Get the bucket and object key from the Event
+  bucket = event['Records'][0]['s3']['bucket']['name']
+  key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'])
+  localFilename = '/tmp/inventory.txt'
+  # Download the file from S3 to the local filesystem
+  try:
+    s3.meta.client.download_file(bucket, key, localFilename)
+  except Exception as e:
+    print(e)
+    print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
+    raise e
+  # Read the Inventory CSV file
+  with open(localFilename) as csvfile:
+    reader = csv.DictReader(csvfile, delimiter=',')
+    # Read each row in the file
+    rowCount = 0
+    for row in reader:
+      rowCount += 1
+      # Show the row in the debug log
+      print(row['store'], row['item'], row['count'])
+      try:
+        # Insert Store, Item and Count into the Inventory table
+        inventoryTable.put_item(
+          Item={
+            'Store':  row['store'],
+            'Item':   row['item'],
+            'Count':  int(row['count'])})
+      except Exception as e:
+         print(e)
+         print("Unable to insert data into DynamoDB table".format(e))
+    # Finished!
+    return "%d counts inserted" % rowCount
+
+-->At the top of the Code source section, choose File and then choose Save
+			Then Deploy your changes.
+
+Task 2: Configuring an Amazon S3 event
+
+-->On the AWS Management Console, in the search box, enter and choose S3.
+-->Choose Create bucket.
+-->For Bucket name enter inventory-<number>, and replace <number> with a random number.
+-->Choose Create bucket.
+-->Choose the name of your inventory-<number> bucket.
+-->Choose the Properties tab.
+-->In the Event notifications section, choose Create event notification, and then configure these settings:
+      Event name: Enter Load-Inventory.
+      Event types: Choose All object create events.
+      Destination: Choose Lambda function.
+      Lambda function: Choose Load-Inventory.
+-->Choose Save changes.
+
+Task 3: Testing the loading process
+-->Download the inventory files by opening (right-clicking) the context menu for these links:
+            https://labs.vocareum.com/web/3438615/3287083.0/ASNLIB/public/scripts/inventory-berlin.csv
+            https://labs.vocareum.com/web/3438615/3287083.0/ASNLIB/public/scripts/inventory-calcutta.csv
+            https://labs.vocareum.com/web/3438615/3287083.0/ASNLIB/public/scripts/inventory-karachi.csv
+            https://labs.vocareum.com/web/3438615/3287083.0/ASNLIB/public/scripts/inventory-pusan.csv
+            https://labs.vocareum.com/web/3438615/3287083.0/ASNLIB/public/scripts/inventory-shanghai.csv
+            https://labs.vocareum.com/web/3438615/3287083.0/ASNLIB/public/scripts/inventory-springfield.csv
+
+-->Choose the Objects tab.
+-->Choose Upload.
+-->Choose Add files, and choose one of the inventory .csv files that you downloaded earlier in this task. You can choose any inventory file.
+-->Choose Upload. 
+-->At the top of these instructions, choose AWS Details.
+-->From the window, copy the Dashboard URL.
+-->Copy and paste the URL into a new web browser tab.
+-->On the AWS Management Console, in the search box, enter and choose DynamoDB.
+-->In the left navigation pane, choose Tables.
+-->Choose the Inventory table.
+-->Choose Explore table items.
+-->The data from the inventory file is displayed. It shows the Store, Item, and Count.
+
+Task 4: Configuring notifications
+
+-->On the AWS Management Console, in the search box, enter and choose SNS.
+-->In the Create topic section, for Topic name, enter NoStock.
+-->Choose Next step.
+-->On the Create topic page, keep Standard selected. 
+-->Choose Create topic.
+			To receive notifications, you must subscribe to the topic. You can choose to receive notifications through several methods, such as SMS and email.  
+-->On the NoStock topic page, in the Subscriptions section, choose Create subscription.
+-->On the Create subscription page, configure these settings:
+      Protocol: Choose Email.
+      Endpoint: Enter your email address.
+-->Choose Create subscription.
+			After you create an email subscription, you will receive a confirmation email message. 
+-->To confirm your subscription, open the email message, and choose the Confirm subscription link.
+
+Task 5: Creating a Lambda function to send notifications
+
+-->On the AWS Management Console, in the search box, enter and choose Lambda.
+-->Choose Create function.
+-->Configure these settings:
+
+      For Function name, enter Check-Stock.
+      For Runtime, choose Python 3.8.
+      Expand  Change default execution role, and configure the following options:
+            For Execution role, choose Use an existing role.
+            For Existing role, choose Lambda-Check-Stock-Role.
+-->Choose Create function.
+-->In the Code source section, in the Environment pane, choose lambda_function.py.
+-->In the code editor for the lambda_function.py file, delete the code.
+-->In the Code source editor, copy and paste the following code:
+
+# Stock Check Lambda function
+#
+# This function is invoked when values are inserted into the Inventory DynamoDB table.
+# Inventory counts are checked and if an item is out of stock, a notification is sent to an SNS Topic.
+import json, boto3
+# This handler is run every time the Lambda function is invoked
+def lambda_handler(event, context):
+  # Show the incoming event in the debug log
+  print("Event received by Lambda function: " + json.dumps(event, indent=2))
+  # For each inventory item added, check if the count is zero
+  for record in event['Records']:
+    newImage = record['dynamodb'].get('NewImage', None)
+    if newImage:      
+      count = int(record['dynamodb']['NewImage']['Count']['N'])  
+      if count == 0:
+        store = record['dynamodb']['NewImage']['Store']['S']
+        item  = record['dynamodb']['NewImage']['Item']['S']  
+        # Construct message to be sent
+        message = store + ' is out of stock of ' + item
+        print(message)  
+        # Connect to SNS
+        sns = boto3.client('sns')
+        alertTopic = 'NoStock'
+        snsTopicArn = [t['TopicArn'] for t in sns.list_topics()['Topics']
+                        if t['TopicArn'].lower().endswith(':' + alertTopic.lower())][0]  
+        # Send message to SNS
+        sns.publish(
+          TopicArn=snsTopicArn,
+          Message=message,
+          Subject='Inventory Alert!',
+          MessageStructure='raw'
+        )
+  # Finished!
+  return 'Successfully processed {} records.'.format(len(event['Records']))
+
+-->To save your changes, chooseFile and then choose Save
+-->Then choose Deploy.
+-->In the Function overview section, choose Add trigger, and configure these settings:
+      Select a source: Choose DynamoDB.
+      DynamoDB table: Choose Inventory.
+-->Choose Add.
+
+Task 6: Testing the system
+-->On the AWS Management Console, in the search box, enter and choose S3.
+-->Choose the name of your inventory-<number> bucket.
+-->Choose Upload.
+-->On the Upload page, choose Add files, and upload a different inventory file.
+-->Return to the Inventory System dashboard browser tab, and refresh  the page.
+        You should now be able to use the All Stores menu to view the inventory from both stores.
+        Also, you should receive a notification through SMS or email that the store has an out-of-stock item (each inventory file has one item that is out of stock).
+
+SUBMIT WORK
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+WEEK 8:
+     **Amazon VPC**
+Task 1: Creating a VPC
+
+-->On the AWS Management Console, in the search box, enter and choose VPC to open the Amazon VPC console.
+-->In the left navigation pane, choose Your VPCs.
+-->Choose Create VPC. 
+-->On the Create VPC page, configure the following options:
+       Name tag - optional: Enter Lab VPC.
+       IPv4 CIDR: Enter 10.0.0.0/16.
+-->Choose Create VPC.
+-->Choose the Tags tab.
+-->Choose Actions, and choose Edit VPC settings.
+   For DNS settings, select Enable DNS hostnames.
+   Choose Save.
+Task 2: Creating subnets
+
+In this task, you create a public subnet and a private subnet:
+
+Task 2.1: Creating a public subnet
+
+-->In the left navigation pane, choose Subnets.
+-->Choose Create subnet.
+-->On the Create subnet page, configure the following options:
+         VPC ID: Choose Lab VPC.
+         Subnet name: Enter Public Subnet.
+-->Availability Zone: Choose the first Availability Zone in the list. Do not keep No preference as the default.
+-->IPv4 subnet CIDR block: Enter 10.0.0.0/24.
+-->Choose Create subnet.
+-->Select Public Subnet.
+
+-->Choose Actions, and then choose Edit subnet settings.
+On the Edit subnet settings page, for Auto-assign IP settings, select Enable auto-assign public IPv4 address.
+Choose Save.
+
+
+Task 2.2: Creating a private subnet
+In this task, you create a private subnet. The private subnet will be used for resources that must remain isolated from the internet.
+
+-->Choose Create subnet.
+
+-->On the Create subnet page, configure the following options:
+      VPC ID: Choose Lab VPC.    
+      Subnet name: Enter Private Subnet.
+      Availability Zone: Choose the first Availability Zone in the list. Do not keep No preference as the default.
+      IPv4 subnet CIDR block: Enter 10.0.2.0/23.
+-->Choose Create subnet.
+
+Task 3: Creating an internet gateway
+
+-->In the left navigation pane, choose Internet gateways.
+-->Choose Create internet gateway.
+        For Name tag, enter Lab IGW.
+        Choose Create internet gateway.
+
+Choose Actions, and then choose Attach to VPC.
+For Available VPCs, choose Lab VPC.
+Choose Attach internet gateway.
+
+Task 4: Configuring route tables
+Create a public route table for internet-bound traffic.
+In the left navigation pane, choose Route tables.
+-->Expand the VPC column so that you can see which one is used by Lab VPC.
+-->Select the route table that shows Lab VPC.
+-->In the Name column, choose the edit icon (), and for Edit Name, enter Private Route Table.
+Choose Save.
+Choose the Routes tab.
+-->Choose Create route table, and configure these settings:
+Name - optional: Enter Public Route Table.
+VPC: Choose Lab VPC.
+Choose Create route table.
+In the Routes tab, choose Edit routes.
+-->You now add a route to direct internet-bound traffic (0.0.0.0/0) to the internet gateway.
+-->Choose Add route, then configure these settings:
+Destination: Enter 0.0.0.0/0.
+Target: Choose Internet Gateway and then, from the list, choose Lab IGW.
+Choose Save changes.
+-->Choose the Subnet associations tab.
+-->Choose Edit subnet associations.
+Select the row with Public Subnet.
+Choose Save associations.
+Task 5: Creating a security group for the application server
+-->In this task, you create a security group that gives users the ability to access your application server through HTTP.
+-->In the left navigation pane, choose Security groups.
+-->Choose Create security group.
+-->On the Create security group page, configure the following options:
+        Security group name: Enter App-SG.
+        Description: Enter Allow HTTP traffic.
+        VPC: Choose Lab VPC.
+-->In the Inbound rules section, choose Add rule, and then configure the following options:
+        Type: Choose HTTP.
+        Source: Choose Anywhere-IPv4.
+        Description - optional: Enter Allow web access.
+The settings for inbound rules determine which traffic is permitted to reach the instance. You configure the inbound rules to permit HTTP (port 80) traffic that comes from anywhere on the internet (0.0.0.0/0).
+Choose Create security group.
+Task 6: Launching an application server in the public subnet
+-->On the AWS Management Console, in the search box, enter and choose EC2 to open the Amazon EC2 console.
+-->Choose Launch instance.
+-->On the Launch an instance page, configure the following options:
+-->For Name, enter App Server.
+-->In the Application and OS Images (Amazon Machine Image) section, configure the following options:
+-->For  Quick Start, keep the default Amazon Linux option. 
+-->For Amazon Machine Image (AMI), keep the default Amazon Linux 2023 AMI option.
+-->In the Instance type section, keep the default t2.micro option.
+-->For Key pair name - required, choose vockey.
+-->In the Network settings section, choose Edit, and then configure the following options: 
+      For VPC - required, choose Lab VPC.
+      For Subnet, choose Public Subnet.
+      For Firewall (security groups), choose Select existing security group.
+      For Common security groups, choose App-SG.
+-->In the Configure storage section, keep the default settings.
+			Expand the Advanced details panel, and for IAM instance profile, choose Inventory-App-Role.
+-->In the User data box, copy and paste the following code:
+        #!/bin/bash
+        # Install Apache Web Server and PHP
+        dnf install -y httpd wget php-fpm php-mysqli php-json php php-devel
+        dnf install -y mariadb105-server
+        # Download Lab files
+        wget https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACACAD-3-113230/06-lab-mod7-guided-VPC/s3/scripts/al2023-inventory-app.zip -O inventory-app.zip
+        unzip inventory-app.zip -d /var/www/html/
+        # Download and install the AWS SDK for PHP
+        wget https://docs.aws.amazon.com/aws-sdk-php/v3/download/aws.zip
+        unzip aws.zip -d /var/www/html
+        # Turn on web server
+        systemctl enable httpd
+        systemctl start httpd
+        In the Summary section, choose Launch instance.
+        You should see a Success message.
+        Choose the link to the new instance that you created. 
+        Wait until the App Server instance shows 2/2 checks passed in the Status check column.
+         This might take a few minutes. Choose the refresh  icon at the top of the page every 30 seconds or so to check the status of the instance.
+        Select App Server.
+        From the Details tab, copy the Public IPv4 DNS value.
+        Open a new web browser tab, and enter this public IPv4 DNS value.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+week-10:
+            **Implement a distributed application on Hadoop framework to count word frequency with MapReduce**
+            
+-->Create an S3 Bucket -🡪Give a name to it and click on create bucket 🡪Please remember the bucket name
+-->upload the input File and WordCount Runnable JAR File
+-->Download the file from link  
+		https://myawsbucket-hadoop-1602-21-733-102.s3.us-east-1.amazonaws.com/WordCount.jar 
+-->Create a text file with file name as input and add the following into it
+        File name : input
+        Content in file :
+        Hello 
+        World
+        Hello
+        Hi
+  Upload these above input file and file downloaded 
+Task 2: Create an EMR Cluster
+	Application bundle - Core Hadoop
+	-EC2 Key Pair: vockey
+	-EMR Service Role: EMR_DefaultRole
+	-EC2 Instance Profile: EMR_EC2_DefaultRole
+  Click on create cluster
+  If there is Validation Error, stop and start the Lab and try again
+  Cluster creation can take a long time (6 minutes approx)
+Task 3: Add Step in Cluster
+    Add a Step in created Cluster
+        -Select JAR File (WordCount.jar)uploaded to Bucket
+      JAR Location 🡪Select the jar file from browse s3
+        -Give Arguments as follows
+      s3://BUCKET_NAME/input.txt 
+      s3://BUCKET_NAME/output
+    Replace BUCKET_NAME with your bucket name
+    Click on Add step
+    Step completion can take a long time
+    [Wait until the  all the log files get displayed , refresh it every 2min to check]
+Task 4: Open Output
+Open s3 and click on   bucket created by you
+You should see output folder created and inside that there are 4 files . download each file to see the results
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*IAM*
+Task 1: Explore the users and groups, and inspect policies
+--Choose the Services menu, locate the Security, Identity, & Compliance services, and choose IAM.
+----In the navigation pane on the left, choose Users.
+The following IAM users were created for you:
+user-1
+user-2
+user-3
+
+--Choose the name of user-1.
+Notice that user-1 does not have any permissions.
+Choose the Groups tab.
+Notice that user-1 also is not a member of any groups.
+Choose the Security credentials tab.
+Notice that user-1 is assigned a Console password. This allows the user to access the AWS Management Console.
+In the navigation pane on the left, choose User groups.
+The following groups were created for you:
+EC2-Admin
+EC2-Support
+S3-Support
+Choose the name of the EC2-Support group.
+Choose the Permissions tab.
+This group has a managed policy called AmazonEC2ReadOnlyAccess associated with it. Managed policies are prebuilt policies (built either by AWS or by your administrators) that can be attached to IAM users and groups. When the policy is updated, the changes to the policy are immediately applied against all users and groups that are attached to the policy.
+Below Policy Name, choose the link for the AmazonEC2ReadOnlyAccess policy.
+Choose the JSON tab.
+Statements in an IAM policy have the following basic structure:
+Effect says whether to Allow or Deny the permissions.
+Action specifies the API calls that can be made against an AWS service (for example, cloudwatch:ListMetrics).
+Resource defines the scope of entities covered by the policy rule (for example, a specific Amazon Simple Storage Service [Amazon S3] bucket or Amazon EC2 instance; an asterisk [ * ] means any resource).
+In the navigation pane on the left, choose User groups.
+Choose the name of the S3-Support group.
+Choose the Permissions tab.
+The S3-Support group has the AmazonS3ReadOnlyAccess policy attached.
+Below Policy Name, choose the link for the AmazonS3ReadOnlyAccess policy.
+Choose the JSON tab.
+This policy has permissions to Get and List for all resources in Amazon S3.
+In the navigation pane on the left, choose User groups.
+Choose the name of the EC2-Admin group.
+Choose the Permissions tab.
+This group is different from the other two. Instead of a managed policy, the group has an inline policy, which is a policy assigned to just one user or group. Inline policies are typically used to apply permissions for specific situations.
+Below Policy Name, choose the name of the EC2-Admin-Policy policy.
+Choose the JSON tab.
+This policy grants permission to Describe information about Amazon EC2 instances and the ability to Start and Stop instances.
+At the bottom of the screen, choose Cancel to close the policy, and then choose Continu
+
+
+Task 2: Add users to groups
+In the left navigation pane, choose User groups.
+Choose the name of the S3-Support group.
+On the Users tab, choose Add users.
+Select user-1, and choose Add users.
+On the Users tab, notice that user-1 was added to the group.
+
+Task 2.2: Add user-2 to the EC2-Support group
+Use what you learned from the previous steps to add user-2 to the EC2-Support group.
+
+Verify that user-2 is now part of the EC2-Support group.
+
+Task 2.3: Add user-3 to the EC2-Admin group
+
+Use what you learned from the previous steps to add user-3 to the EC2-Admin group.
+Verify that user-3 is now part of the EC2-Admin group.
+In the navigation pane on the left, choose User groups.
+Each group should have a 1 in the Users column. This indicates the number of users in each group.
+If you do not have a 1 for the Users column for a group, revisit the previous steps to ensure that each user is assigned to a group, as shown in the table in the Business scenario section.
+
+
+Task 3: Sign in and test user permissions
+Task 3.1: Get the console sign-in URL
+--In the navigation pane on the left, choose Dashboard.
+
+--Notice the Sign-in URL for IAM users in this account section at the top of the page. The sign-in URL looks similar to the following: https://123456789012.signin.aws.amazon.com/console
+--Copy the sign-in link to a text editor
+
+
+Task 3.2: Test user-1 permissions
+Open a private or incognito window in your browser.
+Paste the sign-in link into the private browser, and press ENTER.
+Sign in with the following credentials:
+
+   IAM user name: user-1
+   Password: Lab-Password1
+
+--Choose the Services menu, and choose S3. You can also use the search bar to find and choose S3.
+--Choose the name of one of your buckets, and browse the content
+Choose the Services menu, and choose EC2. You can also use the search bar to find and choose EC2.
+
+--In the left navigation pane, choose Instances.
+You will now sign in as user-2, who was hired as your Amazon EC2 support person.
+
+First, sign out user-1 from the console:
+In the upper-right corner of the page, choose user-1.
+Choose Sign Out.
+
+
+
+Task 3.3: Test user-2 permissions
+Paste the sign-in link into the private browser again, and press ENTER.
+Sign in with the following credentials:
+IAM user name: user-2
+Password: Lab-Password2
+Choose the Services menu, and choose EC2. You can also use the search bar to find and choose EC2.
+In the navigation pane on the left, choose Instances.
+If you cannot see an EC2 instance, then your Region might be incorrect. In the upper-right corner of the page, choose the Region name, and then choose the Region that you were in at the beginning of the lab (for example, N. Virginia).
+Select the EC2 instance.
+Choose the Instance state menu, and then choose Stop instance.
+To confirm that you want to stop the instance, choose Stop.
+Next, check whether user-2 can access Amazon S3.
+Choose the Services menu, and choose S3. You can also use the search bar to find and choose S3.
+An error message says You don't have permissions to list buckets because user-2 does not have permissions to use Amazon S3.
+You will now sign-in as user-3, who was hired as your Amazon EC2 administrator.
+First, sign out user-2 from the console:
+In the upper-right corner of the page, choose user-2.
+Choose Sign Out.
+
+Task 3.4: Test user-3 permissions
+Paste the sign-in link into the private browser again, and press ENTER.
+Sign in with the following credentials:
+IAM user name: user-3
+Password: Lab-Password3
+Choose the Services menu, and choose EC2.
+In the navigation pane on the left, choose Instances.
+An EC2 instance is listed. As an Amazon EC2 Administrator, this user should have permissions to Stop the EC2 instance.
+If you cannot see an EC2 instance, then your Region might be incorrect. In the upper-right corner of the page, choose the Region name, and then choose the Region that you were in at the beginning of the lab (for example, N. Virginia).
+Select the EC2 instance.
+Choose the Instance state menu, and then choose Stop instance.
+To confirm that you want to stop the instance, choose Stop.
+This ime, the action is successful because user-3 has permissions to stop EC2 instances. The Instance state changes to Stopping and starts to shut down.
+Close your private browser window.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+Running Containers on Amazon Elastic Kubernetes Service (Amazon EKS). 
+Step 1: Set Up Your AWS Account
+1.	Sign Up: If you don't have an AWS account, go to the AWS website and sign up.
+2.	Access Management: Set up IAM (Identity and Access Management) roles and policies for users who will manage the EKS cluster.
+Step 2: Install Required Tools
+1.	AWS CLI: Install the AWS Command Line Interface (CLI) if you haven’t already. Follow the official instructions.
+2.	kubectl: Install kubectl, the Kubernetes command-line tool. Follow the instructions here.
+3.	eksctl: Install eksctl, a command-line tool for creating and managing EKS clusters. Follow the instructions here.
+Step 3: Configure AWS CLI
+1.	Run the following command and provide your AWS credentials:
+bash
+aws configure
+Enter your access key, secret key, region (e.g., us-west-2), and preferred output format (e.g., json).
+Step 4: Create an EKS Cluster
+1.	Use eksctl to create a cluster. Replace <CLUSTER_NAME> and <REGION> with your preferred name and AWS region.
+bash
+eksctl create cluster --name <CLUSTER_NAME> --region <REGION> --without-namespace
+2.	This command will create all necessary resources, including the VPC and EKS control plane.
+Step 5: Configure kubectl
+1.	Once your cluster is created, eksctl automatically updates your kubeconfig file. To verify your connection to the EKS cluster, run:
+bash
+kubectl get svc
+Step 6: Deploy Applications
+1.	You can now deploy applications to your cluster using Kubernetes manifests or Helm charts. Here’s a basic example of deploying a simple application:
+yaml
+# example-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      containers:
+      - name: example-container
+        image: nginx
+        ports:
+        - containerPort: 80
+2.	Apply the deployment:
+bash
+kubectl apply -f example-deployment.yaml
+Step 7: Expose Your Application
+1.	You may want to expose the application using a service:
+yaml
+# example-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: example
+2.	Apply the service: bash kubectl apply -f example-service.yaml
+Step 8: Monitor Your Cluster: Use AWS Management Console or AWS CLI to monitor your EKS cluster and the workloads running on it.
+Additional Considerations
+•	IAM Roles: Ensure that your EKS cluster has the necessary IAM roles assigned for the services you will be using.
+•	Networking: Configure VPC and subnets according to your needs.
+•	Cost Management: Be aware of the costs associated with running EKS and resources in AWS.
+These steps provide a high-level overview of setting up Kubernetes on AWS using EKS. You may want to refer to the official EKS documentation for more detailed information and updates.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Streaming dynamic content using Amazon CloudFront.
+
+Task 1: Lab Preparation
+In this lab, you will be using a sample video file to configure a dynamic stream. For your convenience, an Amazon Simple Storage Service (Amazon S3) bucket has already been created.
+In the AWS Management Console, on the Services menu, choose S3.
+An S3 bucket containing the string awstrainingreinvent should be present. Note the Region that the bucket is in, and open the bucket.
+Open the input folder. It contains a video file named AmazonS3Sample.mp4.
+Note: From the time you log in to the Amazon S3 console, it can take up to ten minutes for the file to appear in the S3 bucket. If you do not see it, select the circular arrow icon on the upper right of the screen to refresh the contents of the bucket.
+Task 2: Create an Amazon CloudFront Distribution
+In this task, you will create an Amazon CloudFront distribution that will be used to deliver the multiple bit-rate files generated by Amazon Elastic Transcoder to end-user devices.
+On the Services menu, choose CloudFront.
+Choose Create a CloudFront distribution.
+Under Origin Settings section of the page, enter the follow information:
+•	Select the Origin domain field. A list of S3 buckets will appear. Choose the one that was created earlier that has awstrainingreinvent as part of the file name.
+•	Leave Origin access as Public.
+•	Under Web Application Firewall (WAF) select Do not enable security protections.
+The warning message under Custom SSL certificate - optional can be safely ignored.
+Scroll to the bottom of the page, then choose Create Distribution.
+Task 3: Create an Amazon Elastic Transcoder Pipeline
+Create a Pipeline
+In this section, you will create a pipeline that will manage the jobs to transcode the input file.
+In the AWS Management Console, on the Services menu, choose Elastic Transcoder.
+In the navigation bar of the Amazon Elastic Transcoder console, select the same Region that the S3 bucket was created in.
+On the Pipelines page, choose Create a new Pipeline.
+For Pipeline Name, enter InputPipeline
+For Input Bucket, select the awstrainingreinvent S3 bucket.
+For IAM Role, under Other roles, select AmazonElasticTranscoderRole. This is a role that was pre-created in this lab's CloudFormation template that uses the managed policy AmazonElasticTranscoderRole. The Elastic Transcoder service will assume this role to access Amazon S3 and Amazon Simple Notification Service (Amazon SNS) resources in your lab account.
+In the Configuration for Amazon S3 Bucket for Transcoded Files and Playlists section, enter the follow information:
+•	Under Bucket, select the awstrainingreinvent S3 bucket.
+•	Under Storage Class, select Standard.
+In the Configuration for Amazon S3 Bucket for Thumbnails section, enter the following information:
+•	Under Bucket, select the awstrainingreinvent S3 bucket.
+•	Under Storage Class, select ReducedRedundancy.
+Choose Create Pipeline.
+Create a Job
+In this section, you will create a job under the Amazon Elastic Transcoder pipeline that was just created. The job does the work of transcoding the input file into multiple bit-rates as selected.
+On the Pipelines page, choose Create New Job to create a transcoding job. You create the job in the pipeline (queue) that you want to use to transcode the video file.
+For Pipeline, select InputPipeline.
+For Output Key Prefix, enter output/.
+Amazon Elastic Transcoder will prepend this value to the names of all files that the job will create (including output files, thumbnails, and playlists).
+For Input Key, select the input file labeled input/AmazonS3Sample.mp4.
+Configure Output Details
+The settings in this section will determine how many output files (bit-rates) are created. You will configure three output files for this demo having three separate bit-rates (2Mbps, 1.5Mbps and 1Mbps). Each output bit-rate will require you to create a separate output details section. This will also output a playlist file for each bit-rate, which lists all the segments that make up the stream.
+For Preset:, select System preset: HLS 2M
+For Segment Duration, enter 10 (which is the HLS default).
+For Output Key, enter the unique prefix HLS20M to name the segments created using this preset.
+Click + Add Another Output and repeat the steps above to generate segments for presets HLS 1.5M and HLS 1M and then provide the respective prefix names:
+•	HLS15M
+•	HLS10M
+Caution: Do not create the job yet! Instead, complete the next few steps in this lab which will have you add a playlist to the job.
+Configure a Playlist
+The playlist will combine all the individual bit-rate playlists and provide a single URL for the devices to playback the stream. To configure a playlist, do the following:
+Under Playlists (Adaptive Streaming), choose Add Playlist, then configure:
+•	Master Playlist Name primary
+•	Playlist Format: HLSv3
+Select all the three outputs, which were entered in the previous section, to include them in this playlist by selecting the + option.
+Choose Create New Job.
+The transcoding process should complete within a minute.
+Task 4: Test Playback of the Dynamic (Multi Bit-Rate) Stream
+In this module, you will test the playback of the dynamic stream generated in the previous section using an iOS or Android device. You can also use an Android 4.x device to test the below exercise.
+Note: Certain browsers may not support this feature. Use the default web browser in the device to test.
+Construct the Playback URL
+The playback URL that plays through Amazon CloudFront is comprised of two components:
+•	Amazon CloudFront domain name
+•	Path of the playlist file in the S3 bucket (output generated by Elastic Transcoder):
+http://<CloudFront domain name>/<playlist file path in Amazon S3 bucket>
+
+Obtain an Amazon CloudFront Domain Name
+To obtain an Amazon CloudFront domain name:
+In the AWS Management Console, on the Services menu, choose CloudFront.
+Select the Amazon CloudFront distribution that was previously created, and verify that the Status has changed from InProgress to Enabled.
+Proceed to the next step only after the Status changes to Enabled.
+Select the Distribution and under Settings. Copy the Distribution domain name and paste it into a text editor.
+
+Obtain the Playlist File Path
+To obtain the playlist file path:
+On the Services menu, choose S3.
+Select the awstrainingreinvent S3 bucket.
+Open the output folder (which contains the output of the transcoding job) and select the primary.m3u8 playlist file.
+This is the file that you will play on your mobile device.
+Next, you must create the URL to the file from CloudFront.
+In a text editor, construct the URL by appending /output/primary.m3u8 to the end of your CloudFront domain name.
+The new URL should look similar to: d1ckwesahkbyvu.cloudfront.net/output/primary.m3u8
+Type the URL into the default browser of an iOS or Android device. If you do not have a mobile device available, type the URL into a browser on your computer.
+Be aware that standard data rates may apply when playing the video on a mobile device.
+The stream should start playing on your device and dynamically request the relevant segments based on your bandwidth and CPU conditions.
+You have learned how to use AWS services such as Amazon S3, Amazon Elastic Transcoder, and Amazon CloudFront together to deliver HLS media files to iOS or Android devices.
+You have successfully:
+•	Learned the basic concepts and terminology of the Amazon Elastic Transcoder and Amazon CloudFront services.
+•	Created your own Amazon Elastic Transcoder pipeline and Amazon CloudFront distribution.
+•	Used Amazon Elastic Transcoder to transcode a video file into different HLS formats and distributed it to remote devices using Amazon CloudFront.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+:   Implement Elastic load balancing and auto scaling service. 
+
+Task 1: Create an AMI for Auto Scaling
+1.	In the AWS Management Console, in the search box next to Services , search for and select EC2.
+2.	In the left navigation pane, choose Instances. First, you will confirm that the instance is running.
+3.	Wait until the Status Checks for Web Server 1 displays 2/2 checks passed. If necessary, choose refresh to update the status.You will now create an AMI based upon this instance.
+4.	Select Web Server 1.
+5.	In the Actions menu, choose Image and templates > Create image, then configure:
+•	Image name: WebServerAMI
+•	Image description: Lab AMI for Web Server
+6.	Choose Create image. A confirmation banner displays the AMI ID for your new AMI.
+ Task 2: Create a Load Balancer
+7.	In the left navigation pane, choose Target Groups.
+o	Choose Create target group
+o	Choose a target type: Instances
+o	Target group name, enter: LabGroup
+o	Select Lab VPC from the VPC drop-down menu.
+8.	Choose Next. The Register targets screen appears.
+9.	Review the settings and choose Create target group
+10.	In the left navigation pane, choose Load Balancers.
+11.	At the top of the screen, choose Create load balancer.
+12.	Under Application Load Balancer, choose Create
+13.	Under Load balancer name, enter: LabELB
+14.	Scroll down to the Network mapping section, then:
+o	For VPC, choose Lab VPC
+o	Choose the first displayed Availability Zone, then select Public Subnet 1 from the Subnet drop down menu that displays beneath it.
+o	Choose the second displayed Availability Zone, then select Public Subnet 2 from the Subnet drop down menu that displays beneath it.
+o	You should now have two subnets selected: Public Subnet 1 and Public Subnet 2. 
+15.	 In the Security groups section:
+o	Choose the Security groups drop down menu and select Web Security Group
+o	Below the drop down menu, choose the X next to the default security group to remove it.The Web Security Group security group should now be the only one that appears.
+16.	For the Listener HTTP:80 row, set the Default action to forward to LabGroup.
+17.	Scroll to the bottom and choose Create load balancer
+The load balancer is successfully created. Choose View load balancer
+Task 3: Create a Launch Template and an Auto Scaling Group
+18.	In the left navigation pane, choose Launch Templates.
+19.	Choose Create launch template
+20.	Configure the launch template settings and create it:
+o	Launch template name: LabConfig
+o	Under Auto Scaling guidance, select Provide guidance to help me set up a template that I can use with EC2 Auto Scaling
+o	In the Application and OS Images (Amazon Machine Image) area, choose My AMIs.
+o	Amazon Machine Image (AMI): choose Web Server AMI
+o	Instance type: choose t2.micro
+o	Key pair name: choose vockey
+o	Firewall (security groups): choose Select existing security group
+o	Security groups: choose Web Security Group
+o	Scroll down to the Advanced details area and expand it.
+o	Scroll down to the Detailed CloudWatch monitoring setting. Select Enable
+o	Choose Create launch template 
+21.	In the Success dialog, choose the LabConfig launch template.
+22.	From the Actions menu, choose Create Auto Scaling group
+23.	Configure the details in Step 1 (Choose launch template or configuration):
+o	Auto Scaling group name: Lab Auto Scaling Group
+o	Launch template: confirm that the LabConfig template you just created is selected.
+o	Choose Next
+24.	Configure the details in Step 2 (Choose instance launch options):
+o	VPC: choose Lab VPC
+o	Availability Zones and subnets: Choose Private Subnet 1 and then choose Private Subnet 2.
+o	Choose Next
+25.	Configure the details in Step 3 (Configure advanced options):
+o	Choose Attach to an existing load balancer
+	Existing load balancer target groups: select LabGroup.
+o	In the Additional settings pane:
+	Select Enable group metrics collection within CloudWatch
+o	Choose Next
+26.	Configure the details in Step 4 (Configure group size and scaling policies - optional):
+o	Under Group size, configure: 
+	Desired capacity: 2
+	Minimum capacity: 2
+	Maximum capacity: 6
+o	Under Scaling policies, choose Target tracking scaling policy and configure:
+	Scaling policy name: LabScalingPolicy
+	Metric type: Average CPU Utilization
+	Target value: 60
+o	Choose Next
+27.	Configure the details in Step 5 (Add notifications - optional):
+o	Auto Scaling can send a notification when a scaling event takes place. You will use the default settings.
+o	Choose Next
+28.	Configure the details in Step 6 (Add tags - optional):
+o	Choose Add tag and Configure the following:
+	Key: Name
+	Value: Lab Instance
+o	Choose Next
+29.	Configure the details in Step 6 (Review):
+o	Review the details of your Auto Scaling group
+o	Choose Create Auto Scaling group
+Task 4: Verify that Load Balancing is Working
+30.	In this task, you will verify that Load Balancing is working correctly.
+31.	In the left navigation pane, choose Instances.
+32.	You should see two new instances named Lab Instance. These were launched by Auto Scaling.
+33.	Next, you will confirm that the new instances have passed their Health Check.
+34.	In the left navigation pane, choose Target Groups.
+o	Select LabGroup
+o	Choose the Targets tab.
+35.	Two target instances named Lab Instance should be listed in the target group.
+36.	Wait until the Status of both instances transitions to healthy. 
+37.	Choose Refresh in the upper-right to check for updates if necessary.
+38.	Healthy indicates that an instance has passed the Load Balancer's health check. This means that the Load Balancer will send traffic to the instance.
+39.	You can now access the Auto Scaling group via the Load Balancer.
+40.	In the left navigation pane, choose Load Balancers.
+o	Select the LabELB load balancer.
+41.	In the Details pane, copy the DNS name of the load balancer, making sure to omit "(A Record)".
+42.	It should look similar to: LabELB-1998580470.us-west-2.elb.amazonaws.com
+43.	Open a new web browser tab, paste the DNS Name you just copied, and press Enter.
+44.	The application should appear in your browser. This indicates that the Load Balancer received the request, sent it to one of the EC2 instances, then passed back the result.
+ Task 5: Test Auto Scaling
+45.	You created an Auto Scaling group with a minimum of two instances and a maximum of six instances. Currently two instances are running because the minimum size is two and the group is currently not under any load. You will now increase the load to cause Auto Scaling to add additional instances.
+46.	Return to the AWS Management Console, but do not close the application tab — you will return to it soon.
+47.	in the search box next to Services , search for and select CloudWatch.
+48.	In the left navigation pane, choose All alarms.
+49.	Two alarms will be displayed. These were created automatically by the Auto Scaling group. They will automatically keep the average CPU load close to 60% while also staying within the limitation of having two to six instances.
+•	On the Services menu, choose EC2.
+•	In the left navigation pane, choose Auto Scaling Groups. 
+•	Select Lab Auto Scaling Group.
+•	In the bottom half of the page, choose the Automatic Scaling tab.
+•	Select LabScalingPolicy.
+•	Choose Actions and Edit.
+•	Change the Target Value to 50.
+•	Choose Update
+•	On the Services menu, choose CloudWatch.
+•	In the left navigation pane, choose All alarms and verify you see two alarms.
+50.	Choose the OK alarm, which has AlarmHigh in its name.
+51.	If no alarm is showing OK, wait a minute then choose refresh in the top-right until the alarm status changes.
+52.	The OK indicates that the alarm has not been triggered. It is the alarm for CPU Utilization > 60, which will add instances when average CPU is high. The chart should show very low levels of CPU at the moment.
+53.	You will now tell the application to perform calculations that should raise the CPU level.
+54.	Return to the browser tab with the web application.
+55.	Choose Load Test beside the AWS logo.
+56.	This will cause the application to generate high loads. The browser page will automatically refresh so that all instances in the Auto Scaling group will generate load. Do not close this tab.
+57.	Return to browser tab with the CloudWatch console.
+58.	In less than 5 minutes, the AlarmLow alarm should change to OK and the AlarmHigh alarm status should change to In alarm.
+59.	You can choose Refresh in the top-right every 60 seconds to update the display.
+60.	You should see the AlarmHigh chart indicating an increasing CPU percentage. Once it crosses the 60% line for more than 3 minutes, it will trigger Auto Scaling to add additional instances.
+61.	Wait until the AlarmHigh alarm enters the In alarm state.
+62.	You can now view the additional instance(s) that were launched.
+
+63.	In the search box next to Services , search for and select EC2.
+64.	In the left navigation pane, choose Instances.
+65.	More than two instances labeled Lab Instance should now be running. The new instance(s) were created by Auto Scaling in response to the CloudWatch alarm.
+66.	Task 6: Terminate Web Server 1
+67.	In this task, you will terminate Web Server 1. This instance was used to create the AMI used by your Auto Scaling group, but it is no longer needed.
+68.	Select Web Server 1 (and ensure it is the only instance selected).
+69.	In the Instance state  menu, choose Instance State > Terminate Instance.
+70.	Choose Terminate
+
+
+
+ 
